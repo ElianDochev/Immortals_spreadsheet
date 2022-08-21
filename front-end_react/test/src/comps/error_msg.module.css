@@ -1,0 +1,12 @@
+.error_msg {
+  color: #03e9f4;
+  font-size: 50px;
+  font-weight: bold;
+  margin-bottom: auto;
+}
+.error_msg p {
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0, auto;
+    padding: 15px;
+}
