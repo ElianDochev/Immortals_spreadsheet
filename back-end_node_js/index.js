@@ -1,99 +1,115 @@
 const express = require('express');
-const {google} = require('googleapis');
-const spreadsheetId = '1WQhstqDIWJQvxrFI3ms6mbh9vpqIqUbBuL8OeRo_nXU';
+// app onject for express
 const app = express();
+//instance of googleapis
+const {google} = require('googleapis');
+//cors object for cross origin resource sharing
+const cors = require('cors');
+//port variable for port number
+const port = process.env.PORT || 1337;
+//spreadsheet id for google sheets
+const spreadsheetId = '1SJZB6FvT06205RoCRN4veDGQHBmqCLAvBLW9YTg5cS8';
+//allowed origins for cors
+const cors_options = {
+    origin: 'http://localhost:3000',
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+//authentication for google sheets
+const auth = new google.auth.GoogleAuth({
+    keyFile: './credentials.json',
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+});
+//cleint instance of auth
+const client = auth.getClient();
+//instance of sheets api
+const sheets = google.sheets({version: 'v4', auth: client});
 
-// var user_data = {
-//     name: "t",
-//     level: "e",
-//     Combat_rating: "s",
-//     Class: "t",
-//     Shadow_rank: "i",
-//     Battleground_rank: "n",
-//     Role: "g",
-//     Clan_Warband: "it",
-// }
-app.listen(1337, (req, res) => console.log('listening on port 1337'));
-
-const toto = new google.auth.
-
-app.get('/', async (req, res) => {
-    const auth = new google.auth.GoogleAuth({
-        keyFile: './credentials.json',
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+function get_correct(Playerclass ,bgRank, shadowRank) {
+    const correct_vals = [["Demon Hunter", "Crusader", "Wizzard", "Monk", "Barbarian", "Necromancer"],
+    ['INITIATE I', 'INITIATE II', 'INITIATE III', 'INITIATE IV', 'APPRENTICE I', 'APPRENTICE II', 'APPRENTICE III', 'APPRENTICE IV', 'WATCHER I', 'WATCHER II', 'WATCHER III', 'WATCHER IV', 'HUNTER I', 'HUNTER II', 'HUNTER III', 'HUNTER IV', 'BLADE I', 'BLADE II', 'BLADE III', 'BLADE IV', 'PHANTOM I', 'PHANTOM II', 'PHANTOM III', 'PHANTOM IV', 'UNSEEN I', 'UNSEEN II', 'UNSEEN III', 'UNSEEN IV', 'WHISPER I', 'WHISPER II', 'WHISPER III', 'WHISPER IV'],
+    ['Bronze I', 'Bronze II', 'Bronze III', 'Bronze IV', 'Bronze V', 'Silver I', 'Silver II', 'Silver III', 'Silver IV', 'Silver V', 'Gold I', 'Gold II', 'Gold III', 'Gold IV', 'Gold V', 'Legend']];
+    let count = 0;
+    correct_vals[0].every((val) => {
+        if (Playerclass === val) {
+            ++count;
+            return false;
+        }
     });
+    correct_vals[1].every((val) => {
+        if (bgRank === val) {
+            ++count;
+            return false;
+        }
+    });
+    correct_vals[2].every((val) => {
+        if (shadowRank === val) {
+            ++count;
+            return false;
+        }
+    });
+    if (count != 3) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
-    //cleint instance of auth
-    const client = await auth.getClient();
+app.use(cors(cors_options));
+app.use(express.json());
+app.get('/', (req, res) => res.send('Server is running'));
 
-    //instance of sheets api
-    const sheets = google.sheets({version: 'v4', auth: client});
+app.post('/api/Update', async (req, res) => {
+    const {user_data} = req.body;
+    console.log(user_data);
+    if (get_correct(user_data.Playerclass, user_data.bgRank, user_data.shadowRank)) {
+        res.send({error: 1, message: "wtf is wrong with you, dont try to troll man"});
+        return;
+    }
+    const check = await sheets.spreadsheets.values.update({
+            auth,
+            spreadsheetId,
+            range: `Stats!A${user.row}:H${user.row}`,
+            valueInputOption: 'RAW',
+            resource: {
+                values: [
+                    [user.name, user.level, user.combatRating,
+                    user.Reso, user.class, user.shadowRank,
+                    user.bgRank, user.Role, user.warbandName],
+                ],
+            }
+        } ).catch(err => {
+            console.log(err);
+            res.send({error: 2,
+                message: err});
+        } ).then(() => {
+        res.send({error: null, message: "success"});
+        return;
+        } );
+} );
 
-    //get metadata of spreadsheet
-    const metadata = await sheets.spreadsheets.get({
+app.post('/api/players', async (req, res) => {
+    const data = await sheets.spreadsheets.values.get({
         auth,
         spreadsheetId,
+        range: `Stats!A${req.body.rows}:I${req.body.rows}`,
     });
+    const values = data.data.values;
+    res.send(values);
+} );
 
-    var row = "6";
-
-
-    //get data from spreadsheet
+app.post('/api/passwords',cors(), async (req, res) => {
     const password = await sheets.spreadsheets.values.get({
         auth,
         spreadsheetId,
         range: "passwords!A2:B101",
-    });
-    //test if password is correct
-    var test_str = "Random pass 2";
-    var test = password.data.values;
-    for (let index = 0; index < test.length; index++) {
-        if (test[index][0] === test_str) {
-            row = test[index][1];
-            break;
-        } else {
-            row = "0";
+    } );
+    password.data.values.forEach(element => {
+        if (element[0] === req.body.password) {
+            res.send({value: element[1]});
+            return;
         }
-    }
-    if (row === "0") {
-        res.send(password.data.values[0][0]);
-        return 1;
-    }
-    //get data from sheet
-    const data = await sheets.spreadsheets.values.get({
-        auth,
-        spreadsheetId,
-        range: `Stats!A${row}:H${row}`,
-    });
-    // const values = data.data.values;
-    // var user_data = {
-    //     name: values[0][0],
-    //     level: values[0][1],
-    //     Combat_rating: values[0][2],
-    //     Class: values[0][3],
-    //     Shadow_rank: values[0][4],
-    //     Battleground_rank: values[0][5],
-    //     Role: values[0][6],
-    //     Clan_Warband: values[0][7],
-    // }
-    // //overwrite data in sheet
-    // const check = await sheets.spreadsheets.values.update({
-    //     auth,
-    //     spreadsheetId,
-    //     range: `Stats!A${row}:H${row}`,
-    //     valueInputOption: 'RAW',
-    //     resource: {
-    //         values: [
-    //             [user_data.name, user_data.level, user_data.Combat_rating,
-    //             user_data.Class, user_data.Shadow_rank, user_data.Battleground_rank,
-    //             user_data.Role, user_data.Clan_Warband],
-    //         ],
-    //     }
-    // });
-    //output
-    res.send(data.data.values);
-    // res.send(check.data);
-    // console.log(user_data);
-    return 0;
-});
+    } );
+    res.send({value: "1"});
+} );
 
+app.listen(port, (req, res) => console.log(`listening on port ${port}`));
