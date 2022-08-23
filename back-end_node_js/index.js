@@ -48,8 +48,10 @@ function get_correct(Playerclass ,bgRank, shadowRank) {
         }
     });
     if (count != 3) {
+        console.log("the correct values are: " + count);
         return true;
     } else {
+        console.log("the correct values are: " + count);
         return false;
     }
 }
@@ -59,22 +61,23 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('Server is running'));
 
 app.post('/api/Update', async (req, res) => {
-    const {user_data} = req.body;
+    const user_data = req.body;
     console.log(user_data);
-    if (get_correct(user_data.Playerclass, user_data.bgRank, user_data.shadowRank)) {
-        res.send({error: 1, message: "wtf is wrong with you, dont try to troll man"});
-        return;
-    }
+    // if (get_correct(user_data.Playerclass, user_data.bgRank, user_data.shadowRank)) {
+    //     res.send({error: 1, message: "wtf is wrong with you, dont try to troll man"});
+    //     console.log("intersting")
+    //     return;
+    // }
     const check = await sheets.spreadsheets.values.update({
             auth,
             spreadsheetId,
-            range: `Stats!A${user.row}:H${user.row}`,
+            range: `Stats!A${user_data.row}:I${user_data.row}`,
             valueInputOption: 'RAW',
             resource: {
                 values: [
-                    [user.name, user.level, user.combatRating,
-                    user.Reso, user.class, user.shadowRank,
-                    user.bgRank, user.Role, user.warbandName],
+                    [user_data.name, user_data.level, user_data.combatRating,
+                    user_data.Reso, user_data.class, user_data.shadowRank,
+                    user_data.bgRank, user_data.Role, user_data.warbandName],
                 ],
             }
         } ).catch(err => {
