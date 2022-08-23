@@ -7,53 +7,46 @@ import {useState} from "react";
 function App () {
     const [pass_passed, setPassPassed] = useState(false);
     const [Error, setError] = useState(false);
+    const [PlayerData, setPlayerData] = useState();
 
-    let row = "1";
-
-    const Player= {
-        name: "",
-        class: "",
-        combatRating: "",
-        level: "",
-        shadowRank: "",
-        bgRank: "",
-        warbandName: "",
-        Reso: "",
-        Role: ""
-    }
-    function UpdatePlayer(row)
+    function UpdatePlayer(row_id)
     {
         fetch("http://localhost:4000/api/players", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({rows: row})
+            body: JSON.stringify({rows: row_id})
         }).then(response =>{
             response.json().then(values => {
                 //display the data recieved from the server
                 console.log(values);
-                Player.name = values[0][0];
-                Player.level = values[0][1];
-                Player.combatRating = values[0][2];
-                Player.Reso = values[0][3];
-                Player.class = values[0][4];
-                Player.shadowRank = values[0][5];
-                Player.Battleground_rank = values[0][6];
-                Player.Role = values[0][7];
-                Player.Clan_Warband = values[0][8];
+                setPlayerData({
+                name : values[0][0],
+                level : values[0][1],
+                combatRating : values[0][2],
+                Reso : values[0][3],
+                class : values[0][4],
+                shadowRank : values[0][5],
+                Battleground_rank : values[0][6],
+                Role : values[0][7],
+                Clan_Warband : values[0][8],
+                row : row_id
+            })
                 //this displays the updated data
-                console.log(Player);
+                console.log(PlayerData);
                 //goes to the form component
                 setPassPassed(true);
             }).catch(err => {
                 //if there is an error, set the error to true
                 setError(true);
+                setPassPassed(false);
                 console.log(err);
             })
         }).catch(err => {
             //if there is an error, set the error to true
             setError(true);
+            setPassPassed(false);
             console.log(err);
         })
     }
@@ -71,8 +64,9 @@ function App () {
                 console.log(res.value);
                 if (res.value > 1)
                 {
-                    row = res.value;
-                    UpdatePlayer(row);
+                    console.log("passed");
+                    console.log(res.value);
+                    UpdatePlayer(res.value);
                 } else {
                     setError(true);
                     setPassPassed(true);
@@ -80,21 +74,19 @@ function App () {
             })
         }).catch(err => {
             setError(true);
+            setPassPassed(false);
             console.log(err);
         })
     }
 
     function HandleForm (data) {
-        const newData = {
-            row : row,
-            ...data
-        };
+        console.log(data);
         fetch("http://localhost:4000/api/Update", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(newData)
+            body: JSON.stringify(data)
         }).catch(err => {
             setError(true);
             console.log(err);
@@ -103,26 +95,26 @@ function App () {
                 if (res.error === null){
                     window.location.reload();
                     alert(res.msg);
-                } else if (res.err == 1) {
-                    setError(2);
+                } else if (res.err === 1) {
+                    setError(null);
                     setPassPassed(false);
-                    console.log(res.msg);
+                    console.log(res.message);
                 } else {
                     setError(true);
                     setPassPassed(false);
-                    console.log(res.msg);
+                    console.log(res.message);
                 }
             })
         })
     }
-    console.log(Player);
+    console.log(PlayerData);
     return (
         <div className="app">
             {pass_passed === false && Error === false ? <LoginBox onBtnPressed={VerifyPass}/> : null}
-            {pass_passed === true  && Error === false ?  <FormChar onNewStats={HandleForm} playerData={Player}/>: null}
+            {pass_passed === true  && Error === false ?  <FormChar onNewStats={HandleForm} playerData={PlayerData}/>: null}
             {pass_passed === true && Error === true ? <ErrorMsg msg="Wrong Password "/> : null}
             {Error === true && pass_passed === false? <ErrorMsg msg = "Something went wrong"/> : null}
-            {Error === 2 && pass_passed === false? <ErrorMsg msg = "Dont troll"/> : null}
+            {Error === null && pass_passed === false? <ErrorMsg msg = "Dont troll"/> : null}
         </div>
     );
 }
