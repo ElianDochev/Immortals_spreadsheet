@@ -10,10 +10,11 @@ function App () {
     const [Error, setError] = useState(false);
     const [PlayerData, setPlayerData] = useState();
     const [Success, setSuccess] = useState(false);
+    const Api_url = "https://backend-sheets.herokuapp.com/"
 
     function UpdatePlayer(row_id)
     {
-        fetch("http://localhost:4000/api/players", {
+        fetch(Api_url + "api/players", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -54,7 +55,7 @@ function App () {
     }
     function VerifyPass(data)
     {
-        fetch("http://localhost:4000/api/passwords", {
+        fetch(Api_url + "api/passwords", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -83,7 +84,7 @@ function App () {
 
     function HandleForm (data) {
         console.log(data);
-        fetch("http://localhost:4000/api/Update", {
+        fetch(Api_url + "api/Update", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
