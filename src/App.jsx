@@ -11,7 +11,9 @@ function App () {
     const [PlayerData, setPlayerData] = useState();
     const [Success, setSuccess] = useState(false);
     const Api_url = "https://backend-sheets.herokuapp.com/"
+    //  const Api_url = "http://localhost:4000/"
 
+    console.log(Api_url + "api/players");
     function UpdatePlayer(row_id)
     {
         fetch(Api_url + "api/players", {
@@ -41,9 +43,19 @@ function App () {
                 //goes to the form component
                 setPassPassed(true);
             }).catch(err => {
-                //if there is an error, set the error to true
-                setError(true);
-                setPassPassed(false);
+                setPlayerData({
+                    name : "",
+                    level : "",
+                    combatRating : "",
+                    Reso : "",
+                    class : "",
+                    shadowRank : "",
+                    Battleground_rank : "",
+                    Role : "",
+                    Clan_Warband : "",
+                    row : row_id
+                })
+                setPassPassed(true);
                 console.log(err);
             })
         }).catch(err => {
@@ -97,6 +109,7 @@ function App () {
             response.json().then(res => {
                 if (res.error === null){
                     setSuccess(true);
+                    setError(null);
                 } else if (res.err === 1) {
                     setError(null);
                     setPassPassed(false);
@@ -117,7 +130,7 @@ function App () {
             {pass_passed === true && Error === true ? <ErrorMsg msg="Wrong Password "/> : null}
             {Error === true && pass_passed === false? <ErrorMsg msg = "Something went wrong"/> : null}
             {Error === null && pass_passed === false? <ErrorMsg msg = "Dont troll"/> : null}
-            {Error === false && Success === true? <ErrorMsg msg = "Success Info sent"/> : null}
+            {Error === null && Success === true? <ErrorMsg msg = "Success Info sent"/> : null}
         </div>
     );
 }

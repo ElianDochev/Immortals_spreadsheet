@@ -65,6 +65,11 @@ body {
   outline: none;
   background: transparent;
 }
+
+.login-box .user-box select option {
+  color: #222;
+}
+
 .login-box .user-box .text {
   position: absolute;
   top:0;
@@ -80,7 +85,6 @@ body {
   color: #03e9f4;
   font-size: small;
 }
-
 .login-box .user-box input:focus ~ label,
 .login-box .user-box input:valid ~ label {
   top: -20px;
